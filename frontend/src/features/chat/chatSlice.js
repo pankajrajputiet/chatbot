@@ -5,12 +5,8 @@ const chatSlice = createSlice({
   initialState: {
     messages: [],
     sessionId: "session-123", 
-    isChatStarted: false,
   },
   reducers: {
-      startChat(state) {
-      state.isChatStarted = true;
-    },
     addMessage: (state, action) => {
       state.messages.push(action.payload);
     },
@@ -20,5 +16,5 @@ const chatSlice = createSlice({
   },
 });
 
-export const {startChat, addMessage, clearChat } = chatSlice.actions;
+export const { addMessage, clearChat } = chatSlice.actions;
 export default chatSlice.reducer;
