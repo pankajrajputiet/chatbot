@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addMessage, removeOptions } from "../features/chat/chatSlice";
+import { addMessage } from "../features/chat/chatSlice";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 
@@ -27,11 +27,12 @@ export default function ChatWindow() {
     };
 
     socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+      const data = JSON.parse(event.data.toString());
+      console.log("Data===>",typeof(data))
       dispatch(addMessage({
         id: Date.now().toString(),
         role: "assistant",
-        content: data.message
+        content: data
       }));
     };
 
@@ -61,9 +62,6 @@ export default function ChatWindow() {
 
   // 🔹 Handle clickable options
   const handleOptionClick = (option, msgId) => {
-    // Remove options from bot message
-    dispatch(removeOptions(msgId));
-
     // Add user message
     dispatch(addMessage({ id: Date.now().toString(), role: "user", content: option }));
 

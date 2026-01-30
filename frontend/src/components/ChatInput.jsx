@@ -7,6 +7,7 @@ export default function ChatInput({ onSend }) {
   const submit = (data) => {
     if (!data.message.trim()) return;
     onSend(data.message);
+    console.log("Submitted message:==>", data);
     reset();
   };
 
