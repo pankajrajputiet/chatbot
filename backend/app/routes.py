@@ -12,6 +12,8 @@ def chat(req:ChatRequest):
     messages.append({"role":"user", "content": req.message})
     
     reply = chat_with_memory(messages)
+    print("type==>", type(reply))
+    print("Reply:====>", reply)
     
     messages.append({"role":"assistant", "content": reply})
     

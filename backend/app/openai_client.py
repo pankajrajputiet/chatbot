@@ -9,4 +9,5 @@ def chat_with_memory(messages):
         model="gpt-4o-mini",
         messages=messages
     )
+    # print("OpenAI response:====>", response.choices[0].message.content)
     return response.choices[0].message.content

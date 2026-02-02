@@ -20,7 +20,6 @@ async def websocket_chat(ws: WebSocket):
             messages.append({"role": "user", "content": user_message})
 
             reply = await asyncio.to_thread(chat_with_memory, messages)
-
             messages.append({"role": "assistant", "content": reply})
 
             chat_collection.update_one(
