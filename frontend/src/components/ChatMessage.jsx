@@ -1,34 +1,63 @@
-import { Button } from "@mui/material";
+import { Box, Paper, Typography, Button, Stack } from "@mui/material";
+import TableMessage from "./TableMessage";
 
-export default function ChatMessage({ id, role, content, options, onOptionClick }) {
-  const isUser = role === "user";
+export default function ChatMessage({ message, onOptionClick }) {
+  const isUser = message.role === "user";
 
   return (
-    <div className={`my-2 flex flex-col ${isUser ? "justify-end" : "justify-start"}`}>
-      <div
-        className={`px-4 py-2 rounded-lg max-w-xs ${isUser ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
-          }`}
+    <Box
+      sx={{
+        maxWidth: "85%",
+        alignSelf: isUser ? "flex-end" : "flex-start",
+        mb: 1.5
+      }}
+    >
+      <Paper
+        elevation={2}
+        sx={{
+          p: 1.5,
+          borderRadius: 2,
+          bgcolor: isUser ? "primary.main" : "grey.200",
+          color: isUser ? "primary.contrastText" : "text.primary"
+        }}
       >
-        {content}
-      </div>
+        {/* TEXT */}
+        {message.type !== "table" && message.content && (
+          <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+            {message.content}
+          </Typography>
+        )}
 
-      {/* 🔹 Show buttons if bot message has options */}
-      <div>
-        {!isUser && options && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {options.map((opt, i) => (
+        {/* TABLE */}
+        {message.type === "table" && (
+          <TableMessage message={message} />
+        )}
+
+        {/* OPTIONS */}
+        {message.options && (
+          <Stack
+            direction="row"
+            spacing={1}
+            mt={1}
+            flexWrap="wrap"
+          >
+            {message.options.map((opt, i) => (
               <Button
                 key={i}
-                variant="outlined"
                 size="small"
-                onClick={() => onOptionClick(opt, id)}
+                variant="outlined"
+                onClick={() => onOptionClick(opt)}
+                sx={{
+                  textTransform: "none",
+                  bgcolor: "white"
+                }}
               >
                 {opt}
               </Button>
             ))}
-          </div>
+          </Stack>
         )}
-      </div>
-    </div>
+      </Paper>
+    </Box>
   );
 }

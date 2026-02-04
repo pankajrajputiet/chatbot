@@ -6,9 +6,8 @@ import ChatInput from "./ChatInput";
 
 export default function ChatWindow() {
   const dispatch = useDispatch();
-  const messages = useSelector((state) => state.chat.messages);
-  const sessionId = useSelector((state) => state.chat.sessionId);
-
+  const { messages, sessionId } = useSelector((state) => state.chat);
+  console.log("ChatWindow messages:==>", messages);
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
   const isConnectedRef = useRef(false);
@@ -27,13 +26,39 @@ export default function ChatWindow() {
     };
 
     socket.onmessage = (event) => {
-      const data = JSON.parse(event.data.toString());
-      console.log("Data===>",typeof(data))
-      dispatch(addMessage({
-        id: Date.now().toString(),
-        role: "assistant",
-        content: data
-      }));
+      try {
+        const data = JSON.parse(event.data);
+console.log("WebSocket message received: =====>", data);
+        // CASE 1: backend sends array (multiple parts)
+        if (Array.isArray(data.messages)) {
+          data.messages.forEach((item) => {
+            dispatch(addMessage({
+              id: Date.now().toString() + Math.random(),
+              role: "assistant",
+              type: item.type,
+              ...item,
+            }));
+          });
+          return;
+        }
+
+        // CASE 2: single message
+        dispatch(addMessage({
+          id: Date.now().toString(),
+          role: "assistant",
+          type: data.type ?? "text",
+          ...data,
+        }));
+
+      } catch {
+        // fallback text
+        dispatch(addMessage({
+          id: Date.now().toString(),
+          role: "assistant",
+          type: "text",
+          content: event.data,
+        }));
+      }
     };
 
     socket.onerror = (err) => console.error("WebSocket error", err);
@@ -46,36 +71,43 @@ export default function ChatWindow() {
     return () => socket.close();
   }, [dispatch, sessionId]);
 
-  // 🔹 Scroll to bottom on new messages
+  // 🔹 Scroll to bottom
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 🔹 Send free-text message
+  // 🔹 Send text
   const sendMessage = (message) => {
     if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
 
-    dispatch(addMessage({ id: Date.now().toString(), role: "user", content: message }));
+    dispatch({
+      type: "chat/addMessage",
+      payload: {
+        id: Date.now().toString(),
+        role: "user",
+        content: message,
+      },
+    });
 
-    socketRef.current.send(JSON.stringify({ type: "message", message, sessionId }));
+    socketRef.current.send(
+      JSON.stringify({ type: "message", message, sessionId })
+    );
   };
 
-  // 🔹 Handle clickable options
-  const handleOptionClick = (option, msgId) => {
-    // Add user message
-    dispatch(addMessage({ id: Date.now().toString(), role: "user", content: option }));
-
-    // Send to WebSocket
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify({ type: "message", message: option, sessionId }));
-    }
+  // 🔹 Handle option click
+  const handleOptionClick = (option) => {
+    sendMessage(option);
   };
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.map((msg) => (
-          <ChatMessage key={msg.id} {...msg} onOptionClick={handleOptionClick} />
+          <ChatMessage
+            key={msg.id}
+            message={msg}
+            onOptionClick={handleOptionClick}
+          />
         ))}
         <div ref={bottomRef} />
       </div>
@@ -84,3 +116,4 @@ export default function ChatWindow() {
     </div>
   );
 }
+``

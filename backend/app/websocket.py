@@ -1,34 +1,26 @@
-import asyncio
 from fastapi import WebSocket, WebSocketDisconnect
-from app.database import chat_collection
-from app.openai_client import chat_with_memory
+from app.agents.agent import agent
+from app.response_parser import normalize_agent_response
 
 async def websocket_chat(ws: WebSocket):
     await ws.accept()
 
     try:
-        session_id = await ws.receive_text()
-        print("Session connected:", session_id)
+        init = await ws.receive_json()
+        session_id = init.get("sessionId")
 
         while True:
-            user_message = await ws.receive_text()
-            print("User:", user_message)
+            data = await ws.receive_json()
+            user_message = data["message"]
 
-            history = chat_collection.find_one({"session_id": session_id})
-            messages = history["messages"] if history else []
+            # 🔥 Run Agno agent
+            run_output = agent.run(user_message)
 
-            messages.append({"role": "user", "content": user_message})
+            # 🔥 Normalize response
+            response = normalize_agent_response(run_output)
 
-            reply = await asyncio.to_thread(chat_with_memory, messages)
-            messages.append({"role": "assistant", "content": reply})
-
-            chat_collection.update_one(
-                {"session_id": session_id},
-                {"$set": {"messages": messages}},
-                upsert=True
-            )
-
-            await ws.send_text(reply)
+            # ✅ SEND CLEAN JSON
+            await ws.send_json(response)
 
     except WebSocketDisconnect:
-        print("WebSocket disconnected safely")
+        print("WebSocket disconnected")

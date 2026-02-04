@@ -6,3 +6,4 @@ openai
 pydantic
 websockets
 httpx 
+agno

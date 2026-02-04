@@ -13,9 +13,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router)
+# app.include_router(router)
 
 @app.websocket("/ws/chat")
 async def websocket_endpoint(ws: WebSocket):
     print("WebSocket connected")
     await websocket_chat(ws)
+
+# import uvicorn    
+
+# if __name__ == "__main__":
+#   uvicorn.run("main:app", port=5000, log_level="info")
