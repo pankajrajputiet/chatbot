@@ -7,7 +7,7 @@ export default function ChatMessage({ message, onOptionClick }) {
   return (
     <Box
       sx={{
-        maxWidth: "85%",
+        maxWidth: "100%",
         alignSelf: isUser ? "flex-end" : "flex-start",
         mb: 1.5
       }}

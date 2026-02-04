@@ -7,7 +7,6 @@ import ChatInput from "./ChatInput";
 export default function ChatWindow() {
   const dispatch = useDispatch();
   const { messages, sessionId } = useSelector((state) => state.chat);
-  console.log("ChatWindow messages:==>", messages);
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
   const isConnectedRef = useRef(false);
@@ -28,7 +27,6 @@ export default function ChatWindow() {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-console.log("WebSocket message received: =====>", data);
         // CASE 1: backend sends array (multiple parts)
         if (Array.isArray(data.messages)) {
           data.messages.forEach((item) => {

@@ -13,7 +13,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# app.include_router(router)
+app.include_router(router)
 
 @app.websocket("/ws/chat")
 async def websocket_endpoint(ws: WebSocket):
