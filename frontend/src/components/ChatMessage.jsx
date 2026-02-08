@@ -30,7 +30,12 @@ export default function ChatMessage({ message, onOptionClick }) {
 
         {/* TABLE */}
         {message.type === "table" && (
-          <TableMessage message={message} />
+          <>
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {message.content}
+            </Typography>
+            <TableMessage message={message} />
+          </>
         )}
 
         {/* OPTIONS */}

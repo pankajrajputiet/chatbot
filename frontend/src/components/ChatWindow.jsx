@@ -7,6 +7,7 @@ import ChatInput from "./ChatInput";
 export default function ChatWindow() {
   const dispatch = useDispatch();
   const { messages, sessionId } = useSelector((state) => state.chat);
+  console.log("messages:====>", messages);
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
   const isConnectedRef = useRef(false);
@@ -26,15 +27,16 @@ export default function ChatWindow() {
 
     socket.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data);
+        const response = JSON.parse(event.data);
+        console.log("received data: ====>", response);
         // CASE 1: backend sends array (multiple parts)
-        if (Array.isArray(data.messages)) {
-          data.messages.forEach((item) => {
+        if (Array.isArray(response.messages)) {
+          response.messages.forEach((message) => {
             dispatch(addMessage({
               id: Date.now().toString() + Math.random(),
               role: "assistant",
-              type: item.type,
-              ...item,
+              type: message.type,
+              ...message,
             }));
           });
           return;
@@ -44,8 +46,8 @@ export default function ChatWindow() {
         dispatch(addMessage({
           id: Date.now().toString(),
           role: "assistant",
-          type: data.type ?? "text",
-          ...data,
+          type: response.type ?? "text",
+          ...response,
         }));
 
       } catch {
@@ -100,10 +102,10 @@ export default function ChatWindow() {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.map((msg) => (
+        {messages.map((message) => (
           <ChatMessage
-            key={msg.id}
-            message={msg}
+            key={message.id}
+            message={message}
             onOptionClick={handleOptionClick}
           />
         ))}

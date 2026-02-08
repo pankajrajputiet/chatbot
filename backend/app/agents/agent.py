@@ -30,6 +30,7 @@ CRITICAL ROUTING RULES:
 
 {
   "type": "table",
+  "content": "...",
   "columns": ["Col1", "Col2", "Col3"],
   "rows": [[...], [...]]
 }
@@ -38,6 +39,12 @@ CRITICAL ROUTING RULES:
 
 {
   "type": "text",
+  "content": "..."
+}
+- For question text → return ONLY:
+
+{
+  "type": "question",
   "content": "..."
 }
 
