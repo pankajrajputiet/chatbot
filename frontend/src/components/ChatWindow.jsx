@@ -31,7 +31,7 @@ export default function ChatWindow() {
         console.log("received data: ====>", response);
         // CASE 1: backend sends array (multiple parts)
         if (Array.isArray(response.messages)) {
-          response.messages.forEach((message) => {
+          response.forEach((message) => {
             dispatch(addMessage({
               id: Date.now().toString() + Math.random(),
               role: "assistant",
