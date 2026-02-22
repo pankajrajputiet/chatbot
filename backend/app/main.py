@@ -1,8 +1,11 @@
+import logging
 from fastapi import FastAPI, WebSocket
 from app.routes import router
 from app.websocket import websocket_chat
 from fastapi.middleware.cors import CORSMiddleware
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -15,12 +18,11 @@ app.add_middleware(
 
 app.include_router(router)
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 @app.websocket("/ws/chat")
 async def websocket_endpoint(ws: WebSocket):
-    print("WebSocket connected")
+    logger.info("WebSocket connected")
     await websocket_chat(ws)
-
-# import uvicorn    
-
-# if __name__ == "__main__":
-#   uvicorn.run("main:app", port=5000, log_level="info")

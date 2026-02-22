@@ -1,7 +1,8 @@
+import { memo } from "react";
 import { Box, Paper, Typography, Button, Stack } from "@mui/material";
 import TableMessage from "./TableMessage";
 
-export default function ChatMessage({ message, onOptionClick }) {
+const ChatMessage = memo(function ChatMessage({ message, onOptionClick }) {
   const isUser = message.role === "user";
 
   return (
@@ -65,4 +66,6 @@ export default function ChatMessage({ message, onOptionClick }) {
       </Paper>
     </Box>
   );
-}
+});
+
+export default ChatMessage;

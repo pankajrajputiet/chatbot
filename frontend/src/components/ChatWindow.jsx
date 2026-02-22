@@ -1,26 +1,26 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addMessage } from "../features/chat/chatSlice";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 
+const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws/chat";
+
 export default function ChatWindow() {
   const dispatch = useDispatch();
   const { messages, sessionId } = useSelector((state) => state.chat);
-  console.log("messages:====>", messages);
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
   const isConnectedRef = useRef(false);
 
-  // 🔹 Connect WebSocket once
+  // Connect WebSocket once
   useEffect(() => {
     if (isConnectedRef.current) return;
 
-    const socket = new WebSocket("ws://localhost:8080/ws/chat");
+    const socket = new WebSocket(WS_URL);
     socketRef.current = socket;
 
     socket.onopen = () => {
-      console.log("WebSocket connected");
       isConnectedRef.current = true;
       socket.send(JSON.stringify({ type: "init", sessionId }));
     };
@@ -28,7 +28,6 @@ export default function ChatWindow() {
     socket.onmessage = (event) => {
       try {
         const response = JSON.parse(event.data);
-        console.log("received data: ====>", response);
         // CASE 1: backend sends array (multiple parts)
         if (Array.isArray(response.messages)) {
           response.forEach((message) => {
@@ -61,23 +60,24 @@ export default function ChatWindow() {
       }
     };
 
-    socket.onerror = (err) => console.error("WebSocket error", err);
+    socket.onerror = () => {
+      isConnectedRef.current = false;
+    };
 
     socket.onclose = () => {
-      console.log("WebSocket disconnected");
       isConnectedRef.current = false;
     };
 
     return () => socket.close();
   }, [dispatch, sessionId]);
 
-  // 🔹 Scroll to bottom
+  // Scroll to bottom
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 🔹 Send text
-  const sendMessage = (message) => {
+  // Send text
+  const sendMessage = useCallback((message) => {
     if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
 
     dispatch({
@@ -92,12 +92,7 @@ export default function ChatWindow() {
     socketRef.current.send(
       JSON.stringify({ type: "message", message, sessionId })
     );
-  };
-
-  // 🔹 Handle option click
-  const handleOptionClick = (option) => {
-    sendMessage(option);
-  };
+  }, [dispatch, sessionId]);
 
   return (
     <div className="flex flex-col h-full">
@@ -106,7 +101,7 @@ export default function ChatWindow() {
           <ChatMessage
             key={message.id}
             message={message}
-            onOptionClick={handleOptionClick}
+            onOptionClick={sendMessage}
           />
         ))}
         <div ref={bottomRef} />
@@ -116,4 +111,3 @@ export default function ChatWindow() {
     </div>
   );
 }
-``
