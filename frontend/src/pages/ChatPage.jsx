@@ -1,13 +1,19 @@
 import ChatWindow from "../components/ChatWindow";
 
-export default function ChatPage() {
+export default function ChatPage({ inputMessage, setInputMessage }) {
+  
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div className="h-screen bg-gray-100 p-4">
       <div className="w-full max-w-2xl h-full bg-white shadow-lg rounded-lg flex flex-col">
-        <div className="p-4 border-b font-bold text-center">
+        
+        <div className="border-b font-bold text-center">
           AI Chatbot 🤖
         </div>
-        <ChatWindow />
+
+        <ChatWindow
+          inputMessage={inputMessage}
+          setInputMessage={setInputMessage}
+        />
       </div>
     </div>
   );

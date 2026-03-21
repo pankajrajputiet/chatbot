@@ -4,16 +4,19 @@ import { addMessage } from "../features/chat/chatSlice";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 
-const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws/chat";
+const WS_URL =
+  import.meta.env.VITE_WS_URL ||
+  `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws/chat`;
 
-export default function ChatWindow() {
+export default function ChatWindow({ inputMessage, setInputMessage }) {
+
   const dispatch = useDispatch();
   const { messages, sessionId } = useSelector((state) => state.chat);
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
   const isConnectedRef = useRef(false);
 
-  // Connect WebSocket once
+  // ✅ Connect WebSocket once
   useEffect(() => {
     if (isConnectedRef.current) return;
 
@@ -28,35 +31,41 @@ export default function ChatWindow() {
     socket.onmessage = (event) => {
       try {
         const response = JSON.parse(event.data);
-        // CASE 1: backend sends array (multiple parts)
+
+        // CASE 1: multiple messages
         if (Array.isArray(response.messages)) {
-          response.forEach((message) => {
-            dispatch(addMessage({
-              id: Date.now().toString() + Math.random(),
-              role: "assistant",
-              type: message.type,
-              ...message,
-            }));
+          response.messages.forEach((message) => {
+            dispatch(
+              addMessage({
+                id: Date.now().toString() + Math.random(),
+                role: "assistant",
+                type: message.type,
+                ...message,
+              })
+            );
           });
           return;
         }
 
         // CASE 2: single message
-        dispatch(addMessage({
-          id: Date.now().toString(),
-          role: "assistant",
-          type: response.type ?? "text",
-          ...response,
-        }));
-
+        dispatch(
+          addMessage({
+            id: Date.now().toString(),
+            role: "assistant",
+            type: response.type ?? "text",
+            ...response,
+          })
+        );
       } catch {
-        // fallback text
-        dispatch(addMessage({
-          id: Date.now().toString(),
-          role: "assistant",
-          type: "text",
-          content: event.data,
-        }));
+        // fallback
+        dispatch(
+          addMessage({
+            id: Date.now().toString(),
+            role: "assistant",
+            type: "text",
+            content: event.data,
+          })
+        );
       }
     };
 
@@ -71,31 +80,39 @@ export default function ChatWindow() {
     return () => socket.close();
   }, [dispatch, sessionId]);
 
-  // Scroll to bottom
+  // ✅ Auto scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Send text
-  const sendMessage = useCallback((message) => {
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
+  // ✅ Send message
+  const sendMessage = useCallback(
+    (message) => {
+      if (
+        !socketRef.current ||
+        socketRef.current.readyState !== WebSocket.OPEN
+      )
+        return;
 
-    dispatch({
-      type: "chat/addMessage",
-      payload: {
-        id: Date.now().toString(),
-        role: "user",
-        content: message,
-      },
-    });
+      dispatch(
+        addMessage({
+          id: Date.now().toString(),
+          role: "user",
+          content: message,
+        })
+      );
 
-    socketRef.current.send(
-      JSON.stringify({ type: "message", message, sessionId })
-    );
-  }, [dispatch, sessionId]);
+      socketRef.current.send(
+        JSON.stringify({ type: "message", message, sessionId })
+      );
+    },
+    [dispatch, sessionId]
+  );
 
   return (
     <div className="flex flex-col h-full">
+      
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.map((message) => (
           <ChatMessage
@@ -107,7 +124,12 @@ export default function ChatWindow() {
         <div ref={bottomRef} />
       </div>
 
-      <ChatInput onSend={sendMessage} />
+      {/* ✅ Controlled Input */}
+      <ChatInput
+        onSend={sendMessage}
+        inputMessage={inputMessage}
+        setInputMessage={setInputMessage}
+      />
     </div>
   );
 }
